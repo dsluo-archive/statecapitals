@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">State Capitals</string>
+    <string name="splash_title">State Capitols Quiz</string>
+    <string name="splash_intro">Introduction</string>
+    <string name="splash_rules">Rules: </string>
+    <string name="splash_start">Start New Quiz</string>
+    <string name="splash_results">Results</string>
 </resources>
