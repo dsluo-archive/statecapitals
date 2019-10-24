@@ -12,6 +12,6 @@ public interface QuizDao {
     @Query("SELECT * FROM quizzes ORDER BY id DESC LIMIT 1")
     Quiz getLast();
 
-    @Query("SELECT * FROM quiz_questions WHERE quiz_id = :quizId")
-    QuizQuestions getQuestions(int quizId);
+    @Query("SELECT * FROM questions WHERE quiz_id = :quizId")
+    Question getQuestions(int quizId);
 }

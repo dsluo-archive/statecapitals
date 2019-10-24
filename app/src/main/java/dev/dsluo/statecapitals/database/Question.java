@@ -5,7 +5,7 @@ import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "quiz_questions",
+@Entity(tableName = "questions",
         foreignKeys = {
                 @ForeignKey(entity = Quiz.class,
                         parentColumns = "id",
@@ -14,7 +14,7 @@ import androidx.room.PrimaryKey;
                         parentColumns = "id",
                         childColumns = "state_id")
         })
-public class QuizQuestions {
+public class Question {
     @PrimaryKey(autoGenerate = true)
     public int id;
 

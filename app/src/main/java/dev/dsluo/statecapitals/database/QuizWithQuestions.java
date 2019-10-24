@@ -15,7 +15,7 @@ public class QuizWithQuestions {
             entity = State.class,
             entityColumn = "id",
             associateBy = @Junction(
-                    value = QuizQuestions.class,
+                    value = Question.class,
                     parentColumn = "quiz_id",
                     entityColumn = "state_id"
             )
