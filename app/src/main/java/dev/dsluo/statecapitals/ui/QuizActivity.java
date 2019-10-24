@@ -1,8 +1,10 @@
-package dev.dsluo.statecapitals;
+package dev.dsluo.statecapitals.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+
+import dev.dsluo.statecapitals.R;
 
 public class QuizActivity extends AppCompatActivity {
 

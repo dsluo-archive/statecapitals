@@ -1,4 +1,4 @@
-package dev.dsluo.statecapitals;
+package dev.dsluo.statecapitals.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,6 +6,7 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import dev.dsluo.statecapitals.R;
 import dev.dsluo.statecapitals.database.QuizActivity;
 
 //splash screen
