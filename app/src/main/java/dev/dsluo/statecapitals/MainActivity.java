@@ -10,8 +10,8 @@ import dev.dsluo.statecapitals.database.QuizActivity;
 
 //splash screen
 public class MainActivity extends AppCompatActivity {
-    Button splashStart;
-    Button splashResults;
+    private Button splashStart;
+    private Button splashResults;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +25,9 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, QuizActivity.class);
             startActivity(intent);
         });
-
+        splashResults.setOnClickListener((view) -> {
+            Intent intent = new Intent(this, ResultsActivity.class);
+            startActivity(intent);
+        });
     }
 }
