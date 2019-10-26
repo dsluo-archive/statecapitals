@@ -7,7 +7,6 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
 import dev.dsluo.statecapitals.R;
-import dev.dsluo.statecapitals.database.QuizActivity;
 
 //splash screen
 public class MainActivity extends AppCompatActivity {
