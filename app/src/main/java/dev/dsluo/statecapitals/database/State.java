@@ -17,4 +17,21 @@ public class State {
     public int capitalSince;
     @ColumnInfo(name = "size_rank")
     public int sizeRank;
+
+    public State(
+            String name,
+            String capital,
+            String city2,
+            String city3,
+            int statehood,
+            int capitalSince,
+            int sizeRank) {
+        this.name = name;
+        this.capital = capital;
+        this.city2 = city2;
+        this.city3 = city3;
+        this.statehood = statehood;
+        this.capitalSince = capitalSince;
+        this.sizeRank = sizeRank;
+    }
 }

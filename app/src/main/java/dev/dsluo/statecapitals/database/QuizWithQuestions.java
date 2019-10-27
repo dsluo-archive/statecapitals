@@ -1,24 +1,23 @@
 package dev.dsluo.statecapitals.database;
 
 import androidx.room.Embedded;
-import androidx.room.Junction;
 import androidx.room.Relation;
 
 import java.util.List;
 
 public class QuizWithQuestions {
     @Embedded
-    Quiz quiz;
+    public Quiz quiz;
 
     @Relation(
             parentColumn = "id",
-            entity = State.class,
-            entityColumn = "id",
-            associateBy = @Junction(
-                    value = Question.class,
-                    parentColumn = "quiz_id",
-                    entityColumn = "state_id"
-            )
+            entity = Question.class,
+            entityColumn = "quiz_id"
     )
-    List<State> states;
+    public List<QuestionWithState> questions;
+
+    QuizWithQuestions(Quiz quiz, List<QuestionWithState> questions) {
+        this.quiz = quiz;
+        this.questions = questions;
+    }
 }

@@ -33,4 +33,9 @@ public class Question {
     // 0 = capital, 1 = city2, 2 = city3, -1 = unanswered
     @ColumnInfo(defaultValue = "-1")
     public int answer;
+
+    public Question(int quizId, int stateId) {
+        this.quizId = quizId;
+        this.stateId = stateId;
+    }
 }
