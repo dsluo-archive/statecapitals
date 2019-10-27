@@ -6,7 +6,6 @@
     <string name="splash_start">Start New Quiz</string>
     <string name="splash_results">Results</string>
 
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="question_number">Question #%d</string>
     <string name="question_text">What is the capital of %s?</string>
 </resources>
