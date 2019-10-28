@@ -3,6 +3,7 @@ package dev.dsluo.statecapitals.database;
 import android.content.Context;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import dev.dsluo.statecapitals.database.daos.AnswerDao;
@@ -117,6 +118,9 @@ public class Repository {
                     City city = cities.get(i);
                     answers.add(new Answer(city.id));
                 }
+
+                // Insert the answers in a random order.
+                Collections.shuffle(answers);
 
                 // Insert the answers and update IDs.
                 List<Long> answerIds = answerDao.insertAll(answers);
