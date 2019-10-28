@@ -17,6 +17,7 @@ import dev.dsluo.statecapitals.R;
 import dev.dsluo.statecapitals.database.Repository;
 import dev.dsluo.statecapitals.database.entities.Question;
 import dev.dsluo.statecapitals.database.entities.Quiz;
+import dev.dsluo.statecapitals.database.entities.dumbwiths.QuizWithQuestions;
 
 public class QuizActivity extends AppCompatActivity {
 
@@ -26,8 +27,7 @@ public class QuizActivity extends AppCompatActivity {
     private int quizId = -1;
     private int questionIndex = -1;
 
-    private Quiz quiz;
-    private List<Question> questions;
+    private QuizWithQuestions quiz;
 
     private ViewPager pager;
     private QuestionPageAdapter adapter;
@@ -55,7 +55,7 @@ public class QuizActivity extends AppCompatActivity {
      *
      * @see <a href="https://stackoverflow.com/a/46166223">Uses this StackOverflow answer.</a>
      */
-    private static class GetQuizTask extends AsyncTask<Void, Void, Void> {
+    private static class GetQuizTask extends AsyncTask<Void, Void, QuizWithQuestions> {
 
         private WeakReference<QuizActivity> activityReference;
 
@@ -64,7 +64,7 @@ public class QuizActivity extends AppCompatActivity {
         }
 
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected QuizWithQuestions doInBackground(Void... voids) {
             QuizActivity activity = activityReference.get();
             if (activity == null || activity.isFinishing())
                 return null;
@@ -73,19 +73,17 @@ public class QuizActivity extends AppCompatActivity {
             Quiz quiz = repo.getNewOrLastQuiz();
             List<Question> questions = repo.getQuestionsForQuiz(quiz.id);
 
-            activity.quiz = quiz;
-            activity.questions = questions;
-
-            return null;
+            return new QuizWithQuestions(quiz, questions);
         }
 
         @Override
-        protected void onPostExecute(Void result) {
+        protected void onPostExecute(QuizWithQuestions result) {
             super.onPostExecute(result);
             QuizActivity activity = activityReference.get();
             if (activity == null || activity.isFinishing())
                 return;
 
+            activity.quiz = result;
             activity.adapter.notifyDataSetChanged();
         }
     }
@@ -111,14 +109,16 @@ public class QuizActivity extends AppCompatActivity {
         @NonNull
         @Override
         public Fragment getItem(int position) {
-            if (activity.quiz == null)
+            QuizWithQuestions quiz = activity.quiz;
+            if (quiz == null)
                 throw new RuntimeException("This shouldn't happen");
-            return QuestionFragment.newInstance(activity.quiz.id, position);
+            return QuestionFragment.newInstance(quiz.getQuiz().id, position);
         }
 
         @Override
         public int getCount() {
-            return activity.questions != null ? activity.questions.size() : 0;
+            QuizWithQuestions quiz = activity.quiz;
+            return quiz != null ? activity.quiz.getQuestions().size() : 0;
         }
     }
 }

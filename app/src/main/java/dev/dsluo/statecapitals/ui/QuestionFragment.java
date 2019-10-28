@@ -21,6 +21,8 @@ import dev.dsluo.statecapitals.database.entities.Answer;
 import dev.dsluo.statecapitals.database.entities.City;
 import dev.dsluo.statecapitals.database.entities.Question;
 import dev.dsluo.statecapitals.database.entities.State;
+import dev.dsluo.statecapitals.database.entities.dumbwiths.AnswerWithCity;
+import dev.dsluo.statecapitals.database.entities.dumbwiths.QuestionWithStateAndAnswers;
 
 public class QuestionFragment extends Fragment {
 
@@ -33,7 +35,6 @@ public class QuestionFragment extends Fragment {
     private Question question;
     private State state;
     private List<Answer> answers;
-    private List<City> cities;
 
     private View view;
     private RadioGroup questionGroup;
@@ -79,7 +80,7 @@ public class QuestionFragment extends Fragment {
         return view;
     }
 
-    private static class GetQuestionTask extends AsyncTask<Void, Void, Void> {
+    private static class GetQuestionTask extends AsyncTask<Void, Void, QuestionWithStateAndAnswers> {
 
         private WeakReference<QuestionFragment> fragmentReference;
 
@@ -88,7 +89,7 @@ public class QuestionFragment extends Fragment {
         }
 
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected QuestionWithStateAndAnswers doInBackground(Void... voids) {
             QuestionFragment fragment = fragmentReference.get();
             if (fragment == null || fragment.isRemoving())
                 return null;
@@ -102,16 +103,16 @@ public class QuestionFragment extends Fragment {
             for (Answer answer : answers)
                 cities.add(repo.getCity(answer.cityId));
 
-            fragment.question = question;
-            fragment.state = state;
-            fragment.answers = answers;
-            fragment.cities = cities;
+            List<AnswerWithCity> composite = new ArrayList<>();
+            for (int i = 0; i < answers.size(); i++)
+                composite.add(new AnswerWithCity(answers.get(i), cities.get(i)));
 
-            return null;
+
+            return new QuestionWithStateAndAnswers(question, state, composite);
         }
 
         @Override
-        protected void onPostExecute(Void question) {
+        protected void onPostExecute(QuestionWithStateAndAnswers question) {
             super.onPostExecute(question);
             QuestionFragment fragment = fragmentReference.get();
             if (fragment == null || fragment.isRemoving())
@@ -126,13 +127,13 @@ public class QuestionFragment extends Fragment {
             fragment.questionText.setText(
                     String.format(
                             fragment.getString(R.string.question_text),
-                            fragment.state.name
+                            question.getState().name
                     )
             );
 
             List<String> choices = new ArrayList<>();
-            for (City city : fragment.cities)
-                choices.add(city.name);
+            for (AnswerWithCity answer : question.getAnswers())
+                choices.add(answer.getCity().name);
 
             for (int i = 0; i < choices.size(); i++) {
                 RadioButton button = new RadioButton(fragment.getContext());
