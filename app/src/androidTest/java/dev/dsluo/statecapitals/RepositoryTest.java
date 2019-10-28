@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import dev.dsluo.statecapitals.database.Repository;
-import dev.dsluo.statecapitals.database.entities.Quiz;
+import dev.dsluo.statecapitals.database.entities.withs.QuizWithQuestions;
 
 @RunWith(AndroidJUnit4.class)
 public class RepositoryTest {
@@ -25,6 +25,6 @@ public class RepositoryTest {
 
     @Test
     public void testNewQuiz() {
-        Quiz quiz = repo.newQuiz(10);
+        QuizWithQuestions quiz = repo.newQuiz(10);
     }
 }

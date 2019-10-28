@@ -16,6 +16,7 @@ import dev.dsluo.statecapitals.database.entities.City;
 import dev.dsluo.statecapitals.database.entities.Question;
 import dev.dsluo.statecapitals.database.entities.Quiz;
 import dev.dsluo.statecapitals.database.entities.State;
+import dev.dsluo.statecapitals.database.entities.withs.QuizWithQuestions;
 
 /**
  * Repository for the database. All other parts of the app should interact with the database through
@@ -64,7 +65,7 @@ public class Repository {
      *
      * @param db An instance of {@link AppDatabase}.
      */
-    private Repository(AppDatabase db) {
+    public Repository(AppDatabase db) {
         this.db = db;
 
         quizDao = db.quizDao();
@@ -76,28 +77,15 @@ public class Repository {
     }
 
 
-    public Quiz getLastQuiz() {
-        return quizDao.getLast();
-    }
-
-    /**
-     * Create a new {@link Quiz}, using the default question count
-     * ({@value DEFAULT_QUESTION_COUNT} questions).
-     *
-     * @return A new quiz.
-     */
-    public Quiz newQuiz() {
-        return newQuiz(DEFAULT_QUESTION_COUNT);
-    }
-
     /**
      * Create a new {@link Quiz}.
      *
      * @param questionCount How many questions should be in the quiz.
      * @return A new quiz.
      */
-    public Quiz newQuiz(int questionCount) {
+    public QuizWithQuestions newQuiz(int questionCount) {
         Quiz quiz = new Quiz();
+
         db.runInTransaction(() -> {
             // Get the states to ask about
             List<State> states = stateDao.getRandoms(questionCount);
@@ -143,12 +131,40 @@ public class Repository {
                 question.quizId = quiz.id;
             questionDao.updateAll(questions);
         });
+        return quizDao.getWithQuestions(quiz.id);
+    }
+
+    /**
+     * Retrieve the last in-progress quiz or create a new quiz, using the default question count
+     * ({@value DEFAULT_QUESTION_COUNT} questions).
+     *
+     * @return A new {@link QuizWithQuestions}.
+     */
+    public QuizWithQuestions getNewOrLastQuiz() {
+        return getNewOrLastQuiz(DEFAULT_QUESTION_COUNT);
+
+    }
+
+    /**
+     * Retrieve the last in-progress quiz or create a new quiz.
+     *
+     * @param questionCount The number of questions in the quiz.
+     * @return A new {@link QuizWithQuestions}.
+     */
+    public QuizWithQuestions getNewOrLastQuiz(int questionCount) {
+        QuizWithQuestions quiz = quizDao.getLast();
+        if (quiz == null || quiz.quiz.completed != null)
+            quiz = this.newQuiz(questionCount);
+
         return quiz;
     }
 
-    public List<Question> getQuizQuestions(int quizId) {
-//        return quizDao.getQuestions();
-        return null;
+    public List<Question> getQuestionsForQuiz(long quizId) {
+        return questionDao.getQuestionsForQuiz(quizId);
+    }
+
+    public Question getQuestionForQuiz(long quizId, int questionIndex) {
+        return questionDao.getQuestionForQuiz(quizId, questionIndex);
     }
 
 }

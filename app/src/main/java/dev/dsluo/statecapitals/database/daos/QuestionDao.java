@@ -34,4 +34,10 @@ public abstract class QuestionDao extends BaseDao<Question> {
 
     @Query("SELECT * FROM Question WHERE quizId = :quizId ORDER BY id ASC")
     public abstract List<Question> getQuestionsForQuiz(long quizId);
+
+    @Query("SELECT * FROM Question " +
+            "WHERE quizId = :quizId " +
+            "ORDER BY id ASC " +
+            "LIMIT 1 OFFSET :questionIndex")
+    public abstract Question getQuestionForQuiz(long quizId, int questionIndex);
 }

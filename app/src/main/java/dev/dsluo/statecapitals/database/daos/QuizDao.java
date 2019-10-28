@@ -2,10 +2,12 @@ package dev.dsluo.statecapitals.database.daos;
 
 import androidx.room.Dao;
 import androidx.room.Query;
+import androidx.room.Transaction;
 
 import java.util.List;
 
 import dev.dsluo.statecapitals.database.entities.Quiz;
+import dev.dsluo.statecapitals.database.entities.withs.QuizWithQuestions;
 
 /**
  * DAO for {@link Quiz}s.
@@ -32,6 +34,11 @@ public abstract class QuizDao extends BaseDao<Quiz> {
     @Query("SELECT * FROM Quiz")
     public abstract List<Quiz> getAll();
 
+    @Transaction
+    @Query("SELECT * FROM Quiz WHERE id = :id")
+    public abstract QuizWithQuestions getWithQuestions(long id);
+
+    @Transaction
     @Query("SELECT * FROM Quiz ORDER BY id DESC LIMIT 1")
-    public abstract Quiz getLast();
+    public abstract QuizWithQuestions getLast();
 }
