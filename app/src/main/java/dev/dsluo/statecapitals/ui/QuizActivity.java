@@ -1,10 +1,7 @@
 package dev.dsluo.statecapitals.ui;
 
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,7 +21,7 @@ import dev.dsluo.statecapitals.database.entities.dumbwiths.QuizWithQuestions;
 
 public class QuizActivity extends AppCompatActivity {
 
-    public static final String QUIZ_ID = "dev.dsluo.statecapitals.QuizActivity.QUIZ_ID";
+    private static final String QUIZ_ID = "dev.dsluo.statecapitals.QuizActivity.QUIZ_ID";
     private static final String QUESTION_INDEX = "dev.dsluo.statecapitals.QuizActivity.QUESTION_INDEX";
 
     private int quizId = -1;
@@ -34,8 +31,6 @@ public class QuizActivity extends AppCompatActivity {
 
     private ViewPager pager;
     private QuestionPageAdapter adapter;
-
-    private Button complete;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,9 +46,6 @@ public class QuizActivity extends AppCompatActivity {
         adapter = new QuestionPageAdapter(getSupportFragmentManager(), this);
         pager.setAdapter(adapter);
 
-        complete = findViewById(R.id.complete);
-        complete.setOnClickListener(view -> new GetQuizTask(this, true).execute());
-
         if (this.quiz == null || this.quizId == -1)
             new GetQuizTask(this).execute();
     }
@@ -66,15 +58,9 @@ public class QuizActivity extends AppCompatActivity {
     private static class GetQuizTask extends AsyncTask<Void, Void, QuizWithQuestions> {
 
         private WeakReference<QuizActivity> activityReference;
-        private boolean finishingQuiz;
 
         GetQuizTask(QuizActivity context) {
-            this(context, false);
-        }
-
-        GetQuizTask(QuizActivity context, boolean finishingQuiz) {
             this.activityReference = new WeakReference<>(context);
-            this.finishingQuiz = finishingQuiz;
         }
 
         @Override
@@ -99,19 +85,6 @@ public class QuizActivity extends AppCompatActivity {
 
             activity.quiz = result;
             activity.adapter.notifyDataSetChanged();
-
-            if (this.finishingQuiz) {
-                for (Question question : activity.quiz.getQuestions())
-                    if (question.selectedAnswerId == null) {
-                        Toast.makeText(activity, "You haven't finished the quiz!", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                Intent intent = new Intent(activity, QuizCompleteActivity.class);
-                intent.putExtra(QUIZ_ID, activity.quizId);
-                activity.startActivity(intent);
-
-            }
         }
     }
 
