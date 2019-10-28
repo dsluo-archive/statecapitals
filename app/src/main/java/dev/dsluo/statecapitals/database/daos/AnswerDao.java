@@ -32,5 +32,5 @@ public abstract class AnswerDao extends BaseDao<Answer> {
     public abstract List<Answer> getAll();
 
     @Query("SELECT * FROM Answer WHERE questionId = :questionId")
-    public abstract List<Answer> getAnswersForQuestion(int questionId);
+    public abstract List<Answer> getAnswersForQuestion(long questionId);
 }

@@ -13,21 +13,28 @@ import androidx.fragment.app.Fragment;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import dev.dsluo.statecapitals.R;
-import dev.dsluo.statecapitals.database.QuestionWithState;
-import dev.dsluo.statecapitals.database.QuizWithQuestions;
 import dev.dsluo.statecapitals.database.Repository;
+import dev.dsluo.statecapitals.database.entities.Answer;
+import dev.dsluo.statecapitals.database.entities.City;
+import dev.dsluo.statecapitals.database.entities.Question;
+import dev.dsluo.statecapitals.database.entities.State;
+import dev.dsluo.statecapitals.database.entities.dumbwiths.AnswerWithCity;
+import dev.dsluo.statecapitals.database.entities.dumbwiths.QuestionWithStateAndAnswers;
 
 public class QuestionFragment extends Fragment {
 
     private static final String QUIZ_ID = "dev.dsluo.statecapitals.QuestionFragment.QUIZ_ID";
     private static final String QUESTION_INDEX = "dev.dsluo.statecapitals.QuestionFragment.QUESTION_INDEX";
 
-    private int quizId = -1;
+    private long quizId = -1;
     private int questionIndex = -1;
+
+    private Question question;
+    private State state;
+    private List<Answer> answers;
 
     private View view;
     private RadioGroup questionGroup;
@@ -38,9 +45,9 @@ public class QuestionFragment extends Fragment {
     public QuestionFragment() {
     }
 
-    public static QuestionFragment newInstance(int quizId, int questionIndex) {
+    public static QuestionFragment newInstance(long quizId, int questionIndex) {
         Bundle args = new Bundle();
-        args.putInt(QUIZ_ID, quizId);
+        args.putLong(QUIZ_ID, quizId);
         args.putInt(QUESTION_INDEX, questionIndex);
 
         QuestionFragment fragment = new QuestionFragment();
@@ -53,7 +60,7 @@ public class QuestionFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
         if (args != null) {
-            this.quizId = args.getInt(QUIZ_ID);
+            this.quizId = args.getLong(QUIZ_ID);
             this.questionIndex = args.getInt(QUESTION_INDEX);
         }
     }
@@ -73,7 +80,7 @@ public class QuestionFragment extends Fragment {
         return view;
     }
 
-    private static class GetQuestionTask extends AsyncTask<Void, Void, QuestionWithState> {
+    private static class GetQuestionTask extends AsyncTask<Void, Void, QuestionWithStateAndAnswers> {
 
         private WeakReference<QuestionFragment> fragmentReference;
 
@@ -82,21 +89,30 @@ public class QuestionFragment extends Fragment {
         }
 
         @Override
-        protected QuestionWithState doInBackground(Void... voids) {
+        protected QuestionWithStateAndAnswers doInBackground(Void... voids) {
             QuestionFragment fragment = fragmentReference.get();
             if (fragment == null || fragment.isRemoving())
                 return null;
-            Repository repo = new Repository(fragment.getContext());
+            Repository repo = Repository.newInstance(fragment.getContext());
 
-            QuizWithQuestions quiz = repo.getQuizQuestions(fragment.quizId);
-            // Quiz *should* be nonnull
-            assert quiz != null;
+            Question question = repo.getQuestionForQuiz(fragment.quizId, fragment.questionIndex);
+            State state = repo.getState(question.stateId);
+            List<Answer> answers = repo.getAnswersForQuestion(question.id);
 
-            return quiz.questions.get(fragment.questionIndex);
+            List<City> cities = new ArrayList<>();
+            for (Answer answer : answers)
+                cities.add(repo.getCity(answer.cityId));
+
+            List<AnswerWithCity> composite = new ArrayList<>();
+            for (int i = 0; i < answers.size(); i++)
+                composite.add(new AnswerWithCity(answers.get(i), cities.get(i)));
+
+
+            return new QuestionWithStateAndAnswers(question, state, composite);
         }
 
         @Override
-        protected void onPostExecute(QuestionWithState question) {
+        protected void onPostExecute(QuestionWithStateAndAnswers question) {
             super.onPostExecute(question);
             QuestionFragment fragment = fragmentReference.get();
             if (fragment == null || fragment.isRemoving())
@@ -111,23 +127,19 @@ public class QuestionFragment extends Fragment {
             fragment.questionText.setText(
                     String.format(
                             fragment.getString(R.string.question_text),
-                            question.state.name
+                            question.getState().name
                     )
             );
 
             List<String> choices = new ArrayList<>();
-            choices.add(question.state.capital);
-            choices.add(question.state.city2);
-            choices.add(question.state.city3);
+            for (AnswerWithCity answer : question.getAnswers())
+                choices.add(answer.getCity().name);
 
-            Collections.shuffle(choices);
+            for (int i = 0; i < choices.size(); i++) {
+                RadioButton button = new RadioButton(fragment.getContext());
+                fragment.questionGroup.addView(button);
 
-            for (int i = 0; i < 3; i++) {
-                RadioButton button = (RadioButton) fragment.questionGroup.getChildAt(i);
                 button.setText(choices.get(i));
-                button.setOnClickListener((answer) -> {
-                    if (answer.toString().equals(question.state.capital));
-                });
             }
         }
     }

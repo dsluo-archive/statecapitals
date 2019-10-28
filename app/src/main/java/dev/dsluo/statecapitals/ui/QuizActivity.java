@@ -11,10 +11,13 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 import dev.dsluo.statecapitals.R;
-import dev.dsluo.statecapitals.database.QuizWithQuestions;
 import dev.dsluo.statecapitals.database.Repository;
+import dev.dsluo.statecapitals.database.entities.Question;
+import dev.dsluo.statecapitals.database.entities.Quiz;
+import dev.dsluo.statecapitals.database.entities.dumbwiths.QuizWithQuestions;
 
 public class QuizActivity extends AppCompatActivity {
 
@@ -66,14 +69,11 @@ public class QuizActivity extends AppCompatActivity {
             if (activity == null || activity.isFinishing())
                 return null;
 
-            Repository repo = new Repository(activity);
-            QuizWithQuestions quiz = repo.getLastQuiz();
+            Repository repo = Repository.newInstance(activity);
+            Quiz quiz = repo.getNewOrLastQuiz();
+            List<Question> questions = repo.getQuestionsForQuiz(quiz.id);
 
-            if (quiz == null) {
-                quiz = repo.newQuiz();
-            }
-
-            return quiz;
+            return new QuizWithQuestions(quiz, questions);
         }
 
         @Override
@@ -110,16 +110,15 @@ public class QuizActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
             QuizWithQuestions quiz = activity.quiz;
-//            if (quiz == null)
-//                throw new RuntimeException("This shouldn't happen");
-            return QuestionFragment.newInstance(quiz.quiz.id, position);
+            if (quiz == null)
+                throw new RuntimeException("This shouldn't happen");
+            return QuestionFragment.newInstance(quiz.getQuiz().id, position);
         }
 
         @Override
         public int getCount() {
             QuizWithQuestions quiz = activity.quiz;
-//            QuizWithQuestions quiz = quizQuestions.get();
-            return quiz != null ? quiz.questions.size() : 0;
+            return quiz != null ? activity.quiz.getQuestions().size() : 0;
         }
     }
 }

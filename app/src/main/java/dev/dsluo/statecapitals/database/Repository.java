@@ -16,7 +16,6 @@ import dev.dsluo.statecapitals.database.entities.City;
 import dev.dsluo.statecapitals.database.entities.Question;
 import dev.dsluo.statecapitals.database.entities.Quiz;
 import dev.dsluo.statecapitals.database.entities.State;
-import dev.dsluo.statecapitals.database.entities.withs.QuizWithQuestions;
 
 /**
  * Repository for the database. All other parts of the app should interact with the database through
@@ -83,7 +82,7 @@ public class Repository {
      * @param questionCount How many questions should be in the quiz.
      * @return A new quiz.
      */
-    public QuizWithQuestions newQuiz(int questionCount) {
+    public Quiz newQuiz(int questionCount) {
         Quiz quiz = new Quiz();
 
         db.runInTransaction(() -> {
@@ -131,29 +130,28 @@ public class Repository {
                 question.quizId = quiz.id;
             questionDao.updateAll(questions);
         });
-        return quizDao.getWithQuestions(quiz.id);
+        return quiz;
     }
 
     /**
      * Retrieve the last in-progress quiz or create a new quiz, using the default question count
      * ({@value DEFAULT_QUESTION_COUNT} questions).
      *
-     * @return A new {@link QuizWithQuestions}.
+     * @return A new {@link Quiz}.
      */
-    public QuizWithQuestions getNewOrLastQuiz() {
+    public Quiz getNewOrLastQuiz() {
         return getNewOrLastQuiz(DEFAULT_QUESTION_COUNT);
-
     }
 
     /**
      * Retrieve the last in-progress quiz or create a new quiz.
      *
      * @param questionCount The number of questions in the quiz.
-     * @return A new {@link QuizWithQuestions}.
+     * @return A new {@link Quiz}.
      */
-    public QuizWithQuestions getNewOrLastQuiz(int questionCount) {
-        QuizWithQuestions quiz = quizDao.getLast();
-        if (quiz == null || quiz.quiz.completed != null)
+    public Quiz getNewOrLastQuiz(int questionCount) {
+        Quiz quiz = quizDao.getLast();
+        if (quiz == null || quiz.completed != null)
             quiz = this.newQuiz(questionCount);
 
         return quiz;
@@ -167,4 +165,15 @@ public class Repository {
         return questionDao.getQuestionForQuiz(quizId, questionIndex);
     }
 
+    public State getState(long id) {
+        return stateDao.get(id);
+    }
+
+    public List<Answer> getAnswersForQuestion(long questionId) {
+        return answerDao.getAnswersForQuestion(questionId);
+    }
+
+    public City getCity(long cityId) {
+        return cityDao.get(cityId);
+    }
 }

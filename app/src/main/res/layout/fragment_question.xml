@@ -38,25 +38,6 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline">
-
-        <RadioButton
-            android:id="@+id/city1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="City 1" />
-
-        <RadioButton
-            android:id="@+id/city2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="City 2" />
-
-        <RadioButton
-            android:id="@+id/city3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="City 3" />
-    </RadioGroup>
+        app:layout_constraintTop_toTopOf="@+id/guideline" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
