@@ -9,6 +9,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import java.lang.ref.WeakReference;
@@ -28,9 +29,11 @@ public class QuestionFragment extends Fragment {
 
     private static final String QUIZ_ID = "dev.dsluo.statecapitals.QuestionFragment.QUIZ_ID";
     private static final String QUESTION_INDEX = "dev.dsluo.statecapitals.QuestionFragment.QUESTION_INDEX";
+    private static final String SELECTED_ANSWER = "dev.dsluo.statecapitals.QuestionFragment.SELECTED_ANSWER";
 
     private long quizId = -1;
     private int questionIndex = -1;
+    private int selected = -1;
 
     private Question question;
     private State state;
@@ -58,6 +61,8 @@ public class QuestionFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         Bundle args = getArguments();
         if (args != null) {
             this.quizId = args.getLong(QUIZ_ID);
@@ -67,8 +72,11 @@ public class QuestionFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (savedInstanceState != null)
+            selected = savedInstanceState.getInt(SELECTED_ANSWER);
+
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_question, container, false);
         questionNumber = view.findViewById(R.id.question_number);
@@ -78,6 +86,12 @@ public class QuestionFragment extends Fragment {
         new GetQuestionTask(this).execute();
 
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(SELECTED_ANSWER, selected);
     }
 
     private static class GetQuestionTask extends AsyncTask<Void, Void, QuestionWithStateAndAnswers> {
@@ -107,7 +121,6 @@ public class QuestionFragment extends Fragment {
             for (int i = 0; i < answers.size(); i++)
                 composite.add(new AnswerWithCity(answers.get(i), cities.get(i)));
 
-
             return new QuestionWithStateAndAnswers(question, state, composite);
         }
 
@@ -135,12 +148,33 @@ public class QuestionFragment extends Fragment {
             for (AnswerWithCity answer : question.getAnswers())
                 choices.add(answer.getCity().name);
 
+            List<Long> answerIds = new ArrayList<>();
+            for (AnswerWithCity answer : question.getAnswers())
+                answerIds.add(answer.getAnswer().id);
+            fragment.selected = answerIds.indexOf(question.getQuestion().selectedAnswerId);
+
             for (int i = 0; i < choices.size(); i++) {
                 RadioButton button = new RadioButton(fragment.getContext());
                 fragment.questionGroup.addView(button);
 
+                if (fragment.selected == i)
+                    button.setChecked(true);
+
                 button.setText(choices.get(i));
+                final int selectedIndex = i;
+                button.setOnClickListener(view -> {
+                    fragment.selected = selectedIndex;
+
+                    AsyncTask.execute(() -> {
+                        Repository repo = Repository.newInstance(fragment.getContext());
+                        Question q = question.getQuestion();
+                        q.selectedAnswerId = question.getAnswers().get(selectedIndex).getAnswer().id;
+
+                        repo.updateQuestion(q);
+                    });
+                });
             }
+
         }
     }
 }

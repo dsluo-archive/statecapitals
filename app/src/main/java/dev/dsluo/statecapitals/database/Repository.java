@@ -176,4 +176,8 @@ public class Repository {
     public City getCity(long cityId) {
         return cityDao.get(cityId);
     }
+
+    public void updateQuestion(Question question) {
+        questionDao.update(question);
+    }
 }
