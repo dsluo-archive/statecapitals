@@ -8,4 +8,5 @@
 
     <string name="question_number">Question #%d</string>
     <string name="question_text">What is the capital of %s?</string>
+    <string name="complete_button">Complete</string>
 </resources>
