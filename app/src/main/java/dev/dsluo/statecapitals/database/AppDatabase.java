@@ -14,21 +14,70 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import dev.dsluo.statecapitals.R;
+import dev.dsluo.statecapitals.database.converters.DateConverter;
+import dev.dsluo.statecapitals.database.daos.AnswerDao;
+import dev.dsluo.statecapitals.database.daos.CityDao;
+import dev.dsluo.statecapitals.database.daos.QuestionDao;
+import dev.dsluo.statecapitals.database.daos.QuizDao;
+import dev.dsluo.statecapitals.database.daos.StateDao;
+import dev.dsluo.statecapitals.database.entities.Answer;
+import dev.dsluo.statecapitals.database.entities.City;
+import dev.dsluo.statecapitals.database.entities.Question;
+import dev.dsluo.statecapitals.database.entities.Quiz;
+import dev.dsluo.statecapitals.database.entities.State;
 
 /**
+ * An implementation of {@link RoomDatabase}.
+ *
  * @author David Luo
  */
-@Database(entities = {State.class, Quiz.class, Question.class}, version = 1, exportSchema = false)
-@TypeConverters({Converters.class})
-abstract class AppDatabase extends RoomDatabase {
-    public static final String DATABASE_NAME = "capitals-db";
+@Database(
+        entities = {
+                State.class,
+                City.class,
+                Quiz.class,
+                Question.class,
+                Answer.class,
+        },
+        version = 1
+)
+@TypeConverters({DateConverter.class})
+public abstract class AppDatabase extends RoomDatabase {
+    private static final String DATABASE_NAME = "capitals-db";
 
     private static volatile AppDatabase instance;
+
+    /**
+     * Helper method to delete the database if it exists.
+     *
+     * @param context The application context.
+     */
+    private static synchronized void deleteDatabase(final Context context) {
+        if (instance != null) {
+            instance.close();
+            instance = null;
+        }
+        File dbs = new File(context.getApplicationInfo().dataDir + "/databases");
+        File dbi = new File(dbs, DATABASE_NAME);
+        //noinspection ResultOfMethodCallIgnored
+        dbi.delete();
+    }
+
+    /**
+     * Deletes the database if it exists and initializes a new one.
+     *
+     * @param context The application context.
+     * @return A clean instance of {@link AppDatabase}
+     */
+    public static synchronized AppDatabase getCleanInstance(final Context context) {
+        deleteDatabase(context);
+        return getInstance(context);
+    }
 
     /**
      * Get instance of the database.
@@ -37,9 +86,6 @@ abstract class AppDatabase extends RoomDatabase {
      * @return An instance of {@link AppDatabase}
      */
     public static synchronized AppDatabase getInstance(final Context context) {
-//        File dbs = new File(context.getApplicationInfo().dataDir + "/databases");
-//        File dbi = new File(dbs, DATABASE_NAME);
-//        dbi.delete();
 
         if (instance == null) {
             instance = Room.databaseBuilder(context, AppDatabase.class, DATABASE_NAME)
@@ -75,33 +121,59 @@ abstract class AppDatabase extends RoomDatabase {
             throw new RuntimeException("state_capitals.csv could not be opened", e);
         }
 
-        // Construct list of states from CSV lines.
-        List<State> states = new ArrayList<>();
-        Map<String, String> line;
-        while (true) {
-            try {
-                if ((line = csvReader.readMap()) == null) break;
-            } catch (IOException | CsvValidationException e) {
-                throw new RuntimeException("state_captials.csv could not be parsed.", e);
+        instance.runInTransaction(() -> {
+            // Construct list of states from CSV lines.
+            Map<String, String> line;
+            while (true) {
+                // Read the CSV line, if available.
+                try {
+                    if ((line = csvReader.readMap()) == null) break;
+                } catch (IOException | CsvValidationException e) {
+                    throw new RuntimeException("state_captials.csv could not be parsed.", e);
+                }
+
+                // Insert cities
+                City capital = new City(line.get("Capital city"));
+                List<City> cities = Arrays.asList(
+                        capital,
+                        new City(line.get("Second city")),
+                        new City(line.get("Third city"))
+                );
+                List<Long> cityIds = instance.cityDao().insertAll(cities);
+                for (int i = 0; i < cities.size(); i++) {
+                    long id = cityIds.get(i);
+                    cities.get(i).id = (int) id;
+                }
+
+                //noinspection ConstantConditions
+                State state = new State(
+                        line.get("State"),
+                        capital.id,
+                        Integer.parseInt(line.get("Statehood")),
+                        Integer.parseInt(line.get("Capital since")),
+                        Integer.parseInt(line.get("Size rank"))
+                );
+
+                long id = instance.stateDao().insert(state);
+
+                for (City city : cities) {
+                    city.stateId = (int) id;
+                    instance.cityDao().update(city);
+                }
             }
+        });
 
-            //noinspection ConstantConditions
-            states.add(new State(
-                    line.get("State"),
-                    line.get("Capital city"),
-                    line.get("Second city"),
-                    line.get("Third city"),
-                    Integer.parseInt(line.get("Statehood")),
-                    Integer.parseInt(line.get("Capital since")),
-                    Integer.parseInt(line.get("Size rank"))
-            ));
-        }
-
-        // Put states into database.
-        instance.stateDao().insertAll(states.toArray(new State[0]));
     }
+
+    // The DAOs
 
     public abstract StateDao stateDao();
 
+    public abstract CityDao cityDao();
+
     public abstract QuizDao quizDao();
+
+    public abstract QuestionDao questionDao();
+
+    public abstract AnswerDao answerDao();
 }

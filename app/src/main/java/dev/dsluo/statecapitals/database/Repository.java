@@ -2,37 +2,149 @@ package dev.dsluo.statecapitals.database;
 
 import android.content.Context;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import dev.dsluo.statecapitals.database.daos.AnswerDao;
+import dev.dsluo.statecapitals.database.daos.CityDao;
+import dev.dsluo.statecapitals.database.daos.QuestionDao;
+import dev.dsluo.statecapitals.database.daos.QuizDao;
+import dev.dsluo.statecapitals.database.daos.StateDao;
+import dev.dsluo.statecapitals.database.entities.Answer;
+import dev.dsluo.statecapitals.database.entities.City;
+import dev.dsluo.statecapitals.database.entities.Question;
+import dev.dsluo.statecapitals.database.entities.Quiz;
+import dev.dsluo.statecapitals.database.entities.State;
+
+/**
+ * Repository for the database. All other parts of the app should interact with the database through
+ * this class.
+ *
+ * @author David Luo
+ */
 public class Repository {
 
-    public static final int DEFAULT_QUESTION_COUNT = 6;
+    private static final int DEFAULT_QUESTION_COUNT = 6;
 
     private AppDatabase db;
+
     private QuizDao quizDao;
+    private QuestionDao questionDao;
+    private AnswerDao answerDao;
+
     private StateDao stateDao;
+    private CityDao cityDao;
 
-    public Repository(Context context) {
-        db = AppDatabase.getInstance(context);
+    /**
+     * Get a {@link Repository}.
+     *
+     * @param context The application context.
+     * @return A repository instance.
+     */
+    public static Repository newInstance(Context context) {
+        AppDatabase db = AppDatabase.getInstance(context);
+        return new Repository(db);
+    }
+
+    /**
+     * Delete the database, then get a new {@link Repository}. This is mostly used for testing.
+     *
+     * @param context The application context.
+     * @return A clean repository instance.
+     */
+
+    public static Repository newCleanInstance(Context context) {
+        AppDatabase db = AppDatabase.getCleanInstance(context);
+        return new Repository(db);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param db An instance of {@link AppDatabase}.
+     */
+    private Repository(AppDatabase db) {
+        this.db = db;
+
         quizDao = db.quizDao();
+        questionDao = db.questionDao();
+        answerDao = db.answerDao();
+
         stateDao = db.stateDao();
+        cityDao = db.cityDao();
     }
 
-    public QuizWithQuestions getLastQuiz() {
-        return quizDao.getLatest();
+
+    public Quiz getLastQuiz() {
+        return quizDao.getLast();
     }
 
-    public QuizWithQuestions newQuiz() {
+    /**
+     * Create a new {@link Quiz}, using the default question count
+     * ({@value DEFAULT_QUESTION_COUNT} questions).
+     *
+     * @return A new quiz.
+     */
+    public Quiz newQuiz() {
         return newQuiz(DEFAULT_QUESTION_COUNT);
     }
 
-    public QuizWithQuestions newQuiz(int questionCount) {
-        List<State> states = stateDao.getRandoms(questionCount);
-        return quizDao.newQuiz(states);
+    /**
+     * Create a new {@link Quiz}.
+     *
+     * @param questionCount How many questions should be in the quiz.
+     * @return A new quiz.
+     */
+    public Quiz newQuiz(int questionCount) {
+        Quiz quiz = new Quiz();
+        db.runInTransaction(() -> {
+            // Get the states to ask about
+            List<State> states = stateDao.getRandoms(questionCount);
+            List<Question> questions = new ArrayList<>();
+            for (State state : states) {
+                City capital = cityDao.getCapitalForState(state.id);
+
+                // Capital is always first element
+                List<City> cities = cityDao.getCitiesForState(state.id);
+                cities.remove(capital);
+                cities.add(0, capital);
+
+                // Correct answer always first element
+                Answer correctAnswer = new Answer(capital.id);
+                List<Answer> answers = new ArrayList<>();
+                answers.add(correctAnswer);
+                for (int i = 1; i < cities.size(); i++) {
+                    City city = cities.get(i);
+                    answers.add(new Answer(city.id));
+                }
+
+                // Insert the answers and update IDs.
+                List<Long> answerIds = answerDao.insertAll(answers);
+                for (int i = 0; i < answers.size(); i++)
+                    answers.get(i).id = answerIds.get(i);
+
+                // Insert question and update its ID.
+                Question question = new Question(state.id, correctAnswer.id);
+                questions.add(question);
+                question.id = questionDao.insert(question);
+
+                // Update answer's questionId to satisfy deferred foreign key.
+                for (Answer answer : answers)
+                    answer.questionId = question.id;
+                answerDao.updateAll(answers);
+            }
+
+            quiz.id = quizDao.insert(quiz);
+            for (Question question : questions)
+                question.quizId = quiz.id;
+            questionDao.updateAll(questions);
+        });
+        return quiz;
     }
 
-    public QuizWithQuestions getQuizQuestions(int quizId) {
-        return quizDao.getQuestions();
+    public List<Question> getQuizQuestions(int quizId) {
+//        return quizDao.getQuestions();
+        return null;
     }
 
 }
