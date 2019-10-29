@@ -1,9 +1,13 @@
 package dev.dsluo.statecapitals.ui;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Pair;
@@ -26,48 +30,60 @@ public class ResultsActivity extends AppCompatActivity {
 
 
     private ListView resultsListView;
-    private List<Quiz> quizList;
-    private List<Float> results;
     private ArrayAdapter adapter;
+    private ArrayList<String> arrayList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_results);
 
+
         resultsListView = (ListView) findViewById(R.id.results_list);
+
+        adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, arrayList);
+
         resultsListView.setAdapter(adapter);
 
         new GetResultsTask();
 
     }
 
-    private static class GetResultsTask extends AsyncTask<Void, Void, Pair<List<Quiz>, List<Float>>> {
+    private static class GetResultsTask extends AsyncTask<Void, Void, ArrayList<String>> {
 
         private WeakReference<ResultsActivity> activityReference;
 
         @Override
-        protected Pair<List<Quiz>, List<Float>> doInBackground(Void... voids) {
+        protected ArrayList<String> doInBackground(Void... voids) {
             ResultsActivity activity = activityReference.get();
             if (activity == null || activity.isFinishing())
                 return null;
 
             Repository repo = Repository.newInstance(activity);
 
+            activity.arrayList = new ArrayList<>();
+
             Pair<List<Quiz>, List<Float>> quizzesAndScores = repo.getAllQuizzesAndScores();
 
-            return quizzesAndScores;
+            ArrayList<String> stringArrayList = new ArrayList<>();
+            for(int i = 0; i < quizzesAndScores.first.size(); i++) {
+                Quiz quiz = quizzesAndScores.first.get(i);
+                Float score = quizzesAndScores.second.get(i);
+                String line = "Quiz " + quiz.id + " Score: " + score + " | Date: " + quiz.completed;
+                stringArrayList.add(line);
+            }
+
+            return stringArrayList;
         }
 
         @Override
-        protected void onPostExecute(Pair<List<Quiz>, List<Float>> quizzesAndScores) {
-            super.onPostExecute(quizzesAndScores);
+        protected void onPostExecute(ArrayList<String> stringArrayList) {
+            super.onPostExecute(stringArrayList);
             ResultsActivity activity = activityReference.get();
             if (activity == null || activity.isFinishing())
                 return;
 
-            activity.quizList = quizzesAndScores.first;
-            activity.results = quizzesAndScores.second;
+            activity.arrayList = stringArrayList;
             activity.adapter.notifyDataSetChanged();
         }
     }
