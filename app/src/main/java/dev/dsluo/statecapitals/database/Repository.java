@@ -211,13 +211,13 @@ public class Repository {
         return quizDao.getAll();
     }
 
-    public Pair<List<Quiz>, List<Float>> getAllQuizzesAndScores() {
-        List<Float> scores = new ArrayList<>();
+    public Pair<List<Quiz>, List<Integer>> getAllQuizzesAndScores() {
+        List<Integer> scores = new ArrayList<>();
         List<Quiz> quizzes = getAllQuizzes();
 
-        for(Quiz quiz : quizzes){
-            scores.add(Float.valueOf(getScore(quiz.id)));
+        for (Quiz quiz : quizzes) {
+            scores.add(getScore(quiz.id));
         }
-        return new Pair<>(quizzes,scores);
+        return new Pair<>(quizzes, scores);
     }
 }
