@@ -1,6 +1,7 @@
 package dev.dsluo.statecapitals.database;
 
 import android.content.Context;
+import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -204,5 +205,19 @@ public class Repository {
             score.set(getScore(quizId));
         });
         return score.get();
+    }
+
+    public List<Quiz> getAllQuizzes() {
+        return quizDao.getAll();
+    }
+
+    public Pair<List<Quiz>, List<Float>> getAllQuizzesAndScores() {
+        List<Float> scores = new ArrayList<>();
+        List<Quiz> quizzes = getAllQuizzes();
+
+        for(Quiz quiz : quizzes){
+            scores.add(Float.valueOf(getScore(quiz.id)));
+        }
+        return new Pair<>(quizzes,scores);
     }
 }
