@@ -36,7 +36,7 @@ public class ResultsActivity extends AppCompatActivity {
 
     private ListView resultsListView;
     private ArrayAdapter adapter;
-    private ArrayList<String> arrayList;
+    private ArrayList<String> arrayList = new ArrayList<>();;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,14 +46,13 @@ public class ResultsActivity extends AppCompatActivity {
 
         resultsListView = (ListView) findViewById(R.id.results_list);
 
-        arrayList = new ArrayList<>();
+        arrayList.add("hello2");
 
         adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, arrayList);
 
         resultsListView.setAdapter(adapter);
 
         new GetResultsTask(this).execute();
-
     }
 
     private static class GetResultsTask extends AsyncTask<Void, Void, ArrayList<String>> {
@@ -81,7 +80,6 @@ public class ResultsActivity extends AppCompatActivity {
                 String line = "Quiz " + quiz.id + " Score: " + score + " | Date: " + quiz.completed;
                 stringArrayList.add(line);
             }
-
             return stringArrayList;
         }
 
@@ -92,7 +90,12 @@ public class ResultsActivity extends AppCompatActivity {
             if (activity == null || activity.isFinishing())
                 return;
 
-            activity.arrayList = stringArrayList;
+            activity.arrayList.clear();
+            for(String item : stringArrayList) {
+                activity.arrayList.add(item);
+            }
+            //activity.adapter.add(activity.arrayList.get(0));
+            //activity.adapter.clear();
             activity.adapter.notifyDataSetChanged();
         }
     }
