@@ -112,15 +112,23 @@ public class QuizActivity extends AppCompatActivity {
             QuizWithQuestions quiz = activity.quiz;
             if (quiz == null)
                 throw new RuntimeException("This shouldn't happen");
+            if (quiz.getQuiz().completed != null)
+                return QuizFinishFragment.newInstance(quiz.getQuiz().id, true);
             if (position == getCount() - 1)
-                return QuizFinishFragment.newInstance(quiz.getQuiz().id);
+                return QuizFinishFragment.newInstance(quiz.getQuiz().id, false);
             return QuestionFragment.newInstance(quiz.getQuiz().id, position);
         }
 
         @Override
         public int getCount() {
             QuizWithQuestions quiz = activity.quiz;
-            return quiz != null ? 1 + activity.quiz.getQuestions().size() : 0;
+
+            if (quiz == null)
+                return 0;
+            else if (quiz.getQuiz().completed != null)
+                return 1;
+            else
+                return 1 + activity.quiz.getQuestions().size();
         }
     }
 }
