@@ -180,4 +180,15 @@ public class Repository {
     public void updateQuestion(Question question) {
         questionDao.update(question);
     }
+
+    public int getScore(long quizId) {
+        List<Question> questions = getQuestionsForQuiz(quizId);
+        int count = questions.size();
+        int correct = 0;
+        for (Question question : questions)
+            if (question.selectedAnswerId != null &&
+                    question.selectedAnswerId == question.correctAnswerId)
+                correct++;
+        return Math.round((float) correct / count * 100);
+    }
 }
