@@ -5,7 +5,9 @@ import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import dev.dsluo.statecapitals.database.daos.AnswerDao;
 import dev.dsluo.statecapitals.database.daos.CityDao;
@@ -191,6 +193,18 @@ public class Repository {
                     question.selectedAnswerId == question.correctAnswerId)
                 correct++;
         return Math.round((float) correct / count * 100);
+    }
+
+    public int finishQuiz(long quizId) {
+        AtomicInteger score = new AtomicInteger(0);
+        db.runInTransaction(() -> {
+            Quiz quiz = quizDao.get(quizId);
+            quiz.completed = new Date();
+            quizDao.update(quiz);
+
+            score.set(getScore(quizId));
+        });
+        return score.get();
     }
 
     public List<Quiz> getAllQuizzes() {
