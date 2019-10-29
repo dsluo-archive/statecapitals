@@ -1,5 +1,6 @@
 package dev.dsluo.statecapitals.ui;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.Group;
 import androidx.fragment.app.Fragment;
 
@@ -36,6 +39,12 @@ public class QuizFinishFragment extends Fragment {
     private Group scoreGroup;
     private TextView score;
 
+    private OnQuizFinishListener onQuizFinishListener;
+
+    public interface OnQuizFinishListener {
+        void onQuizFinished();
+    }
+
     public QuizFinishFragment() {
         // Required empty public constructor
     }
@@ -57,6 +66,34 @@ public class QuizFinishFragment extends Fragment {
             quizId = getArguments().getLong(QUIZ_ID);
             finished = getArguments().getBoolean(FINISHED);
         }
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null)
+            finished = savedInstanceState.getBoolean(FINISHED);
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof OnQuizFinishListener)
+            onQuizFinishListener = (OnQuizFinishListener) context;
+        else
+            throw new RuntimeException(context.toString()
+                    + " must implement OnQuizFinishListener");
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        onQuizFinishListener = null;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -112,7 +149,13 @@ public class QuizFinishFragment extends Fragment {
                     score
             ));
 
+            fragment.finished = true;
 
+            Bundle args = fragment.getArguments();
+            assert args != null;
+            args.putBoolean(FINISHED, true);
+            fragment.setArguments(args);
+            fragment.onQuizFinishListener.onQuizFinished();
         }
     }
 }

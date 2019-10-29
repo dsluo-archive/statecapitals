@@ -2,6 +2,7 @@ package dev.dsluo.statecapitals.ui;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.widget.RadioGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +12,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 import dev.dsluo.statecapitals.R;
@@ -19,15 +21,19 @@ import dev.dsluo.statecapitals.database.entities.Question;
 import dev.dsluo.statecapitals.database.entities.Quiz;
 import dev.dsluo.statecapitals.database.entities.dumbwiths.QuizWithQuestions;
 
-public class QuizActivity extends AppCompatActivity {
+public class QuizActivity extends AppCompatActivity implements QuizFinishFragment.OnQuizFinishListener, QuestionFragment.QuizFinishDispatcher {
 
     private static final String QUIZ_ID = "dev.dsluo.statecapitals.QuizActivity.QUIZ_ID";
     private static final String QUESTION_INDEX = "dev.dsluo.statecapitals.QuizActivity.QUESTION_INDEX";
+    public static final String FINISHED = "FINISHED";
 
     private int quizId = -1;
     private int questionIndex = -1;
+    private boolean finished = false;
 
     private QuizWithQuestions quiz;
+
+    private List<QuestionFragment> fragments = new ArrayList<>();
 
     private ViewPager pager;
     private QuestionPageAdapter adapter;
@@ -40,6 +46,7 @@ public class QuizActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             this.quizId = savedInstanceState.getInt(QUIZ_ID);
             this.questionIndex = savedInstanceState.getInt(QUESTION_INDEX);
+            this.finished = savedInstanceState.getBoolean(FINISHED);
         }
 
         pager = findViewById(R.id.question_pager);
@@ -48,6 +55,27 @@ public class QuizActivity extends AppCompatActivity {
 
         if (this.quiz == null || this.quizId == -1)
             new GetQuizTask(this).execute();
+    }
+
+    @Override
+    public void onQuizFinished() {
+        finished = true;
+        adapter.notifyDataSetChanged();
+
+        for (QuestionFragment fragment : this.fragments) {
+            RadioGroup group = fragment.getQuestionGroup();
+            group.setEnabled(false);
+            group.setClickable(false);
+            for (int i = 0; i < group.getChildCount(); i++) {
+                group.getChildAt(i).setEnabled(false);
+                group.getChildAt(i).setClickable(false);
+            }
+        }
+    }
+
+    @Override
+    public boolean isQuizFinished() {
+        return finished;
     }
 
     /**
@@ -94,6 +122,7 @@ public class QuizActivity extends AppCompatActivity {
 
         outState.putInt(QUIZ_ID, questionIndex);
         outState.putInt(QUESTION_INDEX, questionIndex);
+        outState.putBoolean(FINISHED, finished);
     }
 
     public static class QuestionPageAdapter extends FragmentPagerAdapter {
@@ -110,13 +139,19 @@ public class QuizActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
             QuizWithQuestions quiz = activity.quiz;
+            Fragment fragment;
             if (quiz == null)
                 throw new RuntimeException("This shouldn't happen");
-            if (quiz.getQuiz().completed != null)
-                return QuizFinishFragment.newInstance(quiz.getQuiz().id, true);
-            if (position == getCount() - 1)
-                return QuizFinishFragment.newInstance(quiz.getQuiz().id, false);
-            return QuestionFragment.newInstance(quiz.getQuiz().id, position);
+            else if (quiz.getQuiz().completed != null || activity.finished)
+                fragment = QuizFinishFragment.newInstance(quiz.getQuiz().id, true);
+            else if (position == getCount() - 1)
+                fragment = QuizFinishFragment.newInstance(quiz.getQuiz().id, false);
+            else {
+                fragment = QuestionFragment.newInstance(quiz.getQuiz().id, position);
+                activity.fragments.add((QuestionFragment) fragment);
+            }
+
+            return fragment;
         }
 
         @Override
