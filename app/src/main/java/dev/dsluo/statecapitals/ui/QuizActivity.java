@@ -25,6 +25,7 @@ import dev.dsluo.statecapitals.database.entities.dumbwiths.QuizWithQuestions;
  * Activity for the quiz.
  *
  * @author David Luo
+ * @author Darren Ing
  */
 public class QuizActivity extends AppCompatActivity implements QuizFinishFragment.OnQuizFinishListener, QuestionFragment.QuizFinishDispatcher {
 

@@ -10,7 +10,6 @@
         android:id="@+id/results_list"
         android:layout_width="350dp"
         android:layout_height="529dp"
-        android:entries="@array/results"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

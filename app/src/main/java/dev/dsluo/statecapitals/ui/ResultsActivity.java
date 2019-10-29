@@ -38,6 +38,11 @@ public class ResultsActivity extends AppCompatActivity {
     private ArrayAdapter adapter;
     private ArrayList<String> arrayList = new ArrayList<>();;
 
+    /**
+     * Populat the list-view with reviews using ArrayAdapter updated through background thread.
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,8 +51,6 @@ public class ResultsActivity extends AppCompatActivity {
 
         resultsListView = (ListView) findViewById(R.id.results_list);
 
-        arrayList.add("hello2");
-
         adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, arrayList);
 
         resultsListView.setAdapter(adapter);
@@ -55,6 +58,9 @@ public class ResultsActivity extends AppCompatActivity {
         new GetResultsTask(this).execute();
     }
 
+    /**
+     * Executes the main thread and modifies the global arrayList
+     */
     private static class GetResultsTask extends AsyncTask<Void, Void, ArrayList<String>> {
 
         private WeakReference<ResultsActivity> activityReference;
@@ -94,8 +100,7 @@ public class ResultsActivity extends AppCompatActivity {
             for(String item : stringArrayList) {
                 activity.arrayList.add(item);
             }
-            //activity.adapter.add(activity.arrayList.get(0));
-            //activity.adapter.clear();
+
             activity.adapter.notifyDataSetChanged();
         }
     }

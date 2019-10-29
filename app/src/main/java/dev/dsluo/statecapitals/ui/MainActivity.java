@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import dev.dsluo.statecapitals.R;
 
 /**
- * Main Activity
+ * Main Activity for the splash screen.
  *
  * @author David Luo
  * @author Darren Ing
