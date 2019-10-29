@@ -1,12 +1,21 @@
 package dev.dsluo.statecapitals.ui;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Pair;
+import android.widget.Adapter;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -15,6 +24,7 @@ import java.util.List;
 import dev.dsluo.statecapitals.R;
 import dev.dsluo.statecapitals.database.Repository;
 import dev.dsluo.statecapitals.database.entities.Quiz;
+import dev.dsluo.statecapitals.database.entities.dumbwiths.QuizWithQuestions;
 
 /**
  * Displays and adds functionality to the results page.
@@ -26,7 +36,7 @@ public class ResultsActivity extends AppCompatActivity {
 
     private ListView resultsListView;
     private ArrayAdapter adapter;
-    private ArrayList<String> arrayList = new ArrayList<>();
+    private ArrayList<String> arrayList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,13 +44,16 @@ public class ResultsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_results);
 
 
-        resultsListView = findViewById(R.id.results_list);
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, arrayList);
-        adapter.setNotifyOnChange(true);
+        resultsListView = (ListView) findViewById(R.id.results_list);
+
+        arrayList = new ArrayList<>();
+
+        adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, arrayList);
 
         resultsListView.setAdapter(adapter);
 
         new GetResultsTask(this).execute();
+
     }
 
     private static class GetResultsTask extends AsyncTask<Void, Void, ArrayList<String>> {
@@ -58,13 +71,13 @@ public class ResultsActivity extends AppCompatActivity {
                 return null;
 
             Repository repo = Repository.newInstance(activity);
-            activity.arrayList = new ArrayList<>();
+
             Pair<List<Quiz>, List<Integer>> quizzesAndScores = repo.getAllQuizzesAndScores();
 
             ArrayList<String> stringArrayList = new ArrayList<>();
-            for (int i = 0; i < quizzesAndScores.first.size(); i++) {
+            for(int i = 0; i < quizzesAndScores.first.size(); i++) {
                 Quiz quiz = quizzesAndScores.first.get(i);
-                int score = quizzesAndScores.second.get(i);
+                Integer score = quizzesAndScores.second.get(i);
                 String line = "Quiz " + quiz.id + " Score: " + score + " | Date: " + quiz.completed;
                 stringArrayList.add(line);
             }
@@ -83,4 +96,5 @@ public class ResultsActivity extends AppCompatActivity {
             activity.adapter.notifyDataSetChanged();
         }
     }
+
 }
