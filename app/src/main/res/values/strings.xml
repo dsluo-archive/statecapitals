@@ -1,8 +1,12 @@
 <resources>
     <string name="app_name">State Capitals</string>
     <string name="splash_title">State Capitols Quiz</string>
-    <string name="splash_intro">Introduction</string>
-    <string name="splash_rules">Rules: </string>
+    <string name="splash_intro">Welcome to the State Capitols Quiz. In this app, you will
+    take a quiz with 6 questions that ask about the correct capitol for a random state. You
+    can also view your results of your past quizzes in t</string>
+    <string name="splash_rules">Rules: \n1. Tap \'Start New Quiz\'. \n2. Answer the question by choosing
+    the correct capitol for the state. \n3. Swipe left to continue to the next question. \n4. Tap
+    \'Finish Quiz\'.</string>
     <string name="splash_start">Start New Quiz</string>
     <string name="splash_results">Results</string>
 
