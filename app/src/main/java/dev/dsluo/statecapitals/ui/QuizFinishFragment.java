@@ -10,7 +10,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.Group;
 import androidx.fragment.app.Fragment;
 
@@ -20,10 +19,7 @@ import dev.dsluo.statecapitals.R;
 import dev.dsluo.statecapitals.database.Repository;
 
 /**
- * A simple {@link Fragment} subclass.
- * <p>
- * Use the {@link QuizFinishFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * fragment for the finishing quiz screen.
  *
  * @author David Luo
  */
@@ -41,14 +37,26 @@ public class QuizFinishFragment extends Fragment {
 
     private OnQuizFinishListener onQuizFinishListener;
 
+    /**
+     * tells the quiz activity that the quiz has been finished
+     */
     public interface OnQuizFinishListener {
         void onQuizFinished();
     }
 
+    /**
+     * required empty public constructor
+     */
     public QuizFinishFragment() {
-        // Required empty public constructor
     }
 
+    /**
+     * get a new instance of this fragment
+     *
+     * @param quizId   the id of the quiz for this quiz
+     * @param finished if to render the layout as finished
+     * @return an instance of {@link QuizFinishFragment}
+     */
     public static QuizFinishFragment newInstance(long quizId, boolean finished) {
         QuizFinishFragment fragment = new QuizFinishFragment();
         Bundle args = new Bundle();
@@ -59,6 +67,9 @@ public class QuizFinishFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * restore instance variables from arguments.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,13 +79,11 @@ public class QuizFinishFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState != null)
-            finished = savedInstanceState.getBoolean(FINISHED);
-    }
-
+    /**
+     * gets the {@link OnQuizFinishListener}
+     *
+     * @param context a context that must implement {@link OnQuizFinishListener}
+     */
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -85,17 +94,20 @@ public class QuizFinishFragment extends Fragment {
                     + " must implement OnQuizFinishListener");
     }
 
+    /**
+     * removes the {@link OnQuizFinishListener}
+     */
     @Override
     public void onDetach() {
         super.onDetach();
         onQuizFinishListener = null;
     }
 
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
 
+    /**
+     * Inflate the views and setup the {@link android.view.View.OnClickListener} for the button,
+     * or start finishing if instantiated as such.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -113,14 +125,28 @@ public class QuizFinishFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Async task to finish the quiz.
+     */
     private static class FinishQuizTask extends AsyncTask<Void, Void, Integer> {
 
         private WeakReference<QuizFinishFragment> fragmentReference;
 
+        /**
+         * constructor
+         *
+         * @param fragment the fragment
+         */
         public FinishQuizTask(QuizFinishFragment fragment) {
             this.fragmentReference = new WeakReference<>(fragment);
         }
 
+        /**
+         * get the score of the quiz if already finished, or finish the quiz otherwise
+         *
+         * @param voids nothing
+         * @return the score of the quiz
+         */
         @Override
         protected Integer doInBackground(Void... voids) {
             QuizFinishFragment fragment = fragmentReference.get();
@@ -135,6 +161,11 @@ public class QuizFinishFragment extends Fragment {
                 return repo.finishQuiz(fragment.quizId);
         }
 
+        /**
+         * update the ui with the score.
+         *
+         * @param score the quiz score
+         */
         @Override
         protected void onPostExecute(Integer score) {
             super.onPostExecute(score);

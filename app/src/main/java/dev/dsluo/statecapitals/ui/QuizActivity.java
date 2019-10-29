@@ -21,6 +21,11 @@ import dev.dsluo.statecapitals.database.entities.Question;
 import dev.dsluo.statecapitals.database.entities.Quiz;
 import dev.dsluo.statecapitals.database.entities.dumbwiths.QuizWithQuestions;
 
+/**
+ * Activity for the quiz.
+ *
+ * @author David Luo
+ */
 public class QuizActivity extends AppCompatActivity implements QuizFinishFragment.OnQuizFinishListener, QuestionFragment.QuizFinishDispatcher {
 
     private static final String QUIZ_ID = "dev.dsluo.statecapitals.QuizActivity.QUIZ_ID";
@@ -38,6 +43,9 @@ public class QuizActivity extends AppCompatActivity implements QuizFinishFragmen
     private ViewPager pager;
     private QuestionPageAdapter adapter;
 
+    /**
+     * inflate the layout and setup the pager.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

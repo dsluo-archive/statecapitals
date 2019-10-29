@@ -26,6 +26,11 @@ import dev.dsluo.statecapitals.database.entities.State;
 import dev.dsluo.statecapitals.database.entities.dumbwiths.AnswerWithCity;
 import dev.dsluo.statecapitals.database.entities.dumbwiths.QuestionWithStateAndAnswers;
 
+/**
+ * Fragment for questions
+ *
+ * @author David Luo
+ */
 public class QuestionFragment extends Fragment {
 
     private static final String QUIZ_ID = "dev.dsluo.statecapitals.QuestionFragment.QUIZ_ID";
@@ -36,10 +41,6 @@ public class QuestionFragment extends Fragment {
     private int questionIndex = -1;
     private int selected = -1;
 
-    private Question question;
-    private State state;
-    private List<Answer> answers;
-
     private View view;
     private RadioGroup questionGroup;
     private TextView questionNumber;
@@ -47,18 +48,33 @@ public class QuestionFragment extends Fragment {
 
     private QuizFinishDispatcher quizFinishDispatcher;
 
+    /**
+     * Interface for getting the quiz state from the activity
+     */
     public interface QuizFinishDispatcher {
         boolean isQuizFinished();
     }
 
-    // Required empty public constructor
+    /**
+     * Required empty public constructor
+     */
     public QuestionFragment() {
     }
 
+    /**
+     * allows for the activity to disable loaded question groups
+     */
     public RadioGroup getQuestionGroup() {
         return questionGroup;
     }
 
+    /**
+     * get a new instance of this fragment.
+     *
+     * @param quizId        the quiz for this fragment.
+     * @param questionIndex the index of the question in the quiz
+     * @return a new instance of this fragment
+     */
     public static QuestionFragment newInstance(long quizId, int questionIndex) {
         Bundle args = new Bundle();
         args.putLong(QUIZ_ID, quizId);
@@ -69,10 +85,12 @@ public class QuestionFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * on create; loads arguments for fragment
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
         Bundle args = getArguments();
         if (args != null) {
@@ -81,6 +99,9 @@ public class QuestionFragment extends Fragment {
         }
     }
 
+    /**
+     * sets the {@link QuizFinishDispatcher}
+     */
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -90,12 +111,18 @@ public class QuestionFragment extends Fragment {
             throw new RuntimeException(context.toString() + " must implement QuizFinishDispatcher.");
     }
 
+    /**
+     * removes the {@link QuizFinishDispatcher}
+     */
     @Override
     public void onDetach() {
         super.onDetach();
         quizFinishDispatcher = null;
     }
 
+    /**
+     * create view. set up the layout and inflate the layout
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -108,26 +135,38 @@ public class QuestionFragment extends Fragment {
         questionText = view.findViewById(R.id.question_text);
         questionGroup = view.findViewById(R.id.question_group);
 
-
         new GetQuestionTask(this).execute();
 
         return view;
     }
 
+    /**
+     * save the selected answer. not sure if this is neccesary.
+     */
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(SELECTED_ANSWER, selected);
     }
 
+    /**
+     * async task to get the question for this fragment
+     */
     private static class GetQuestionTask extends AsyncTask<Void, Void, QuestionWithStateAndAnswers> {
 
         private WeakReference<QuestionFragment> fragmentReference;
 
+        /**
+         * constructor. establishes a weak reference to the fragment so that it is properly garbage collected.
+         * i think.
+         */
         public GetQuestionTask(QuestionFragment fragment) {
             this.fragmentReference = new WeakReference<>(fragment);
         }
 
+        /**
+         * Get the question
+         */
         @Override
         protected QuestionWithStateAndAnswers doInBackground(Void... voids) {
             QuestionFragment fragment = fragmentReference.get();
@@ -150,6 +189,10 @@ public class QuestionFragment extends Fragment {
             return new QuestionWithStateAndAnswers(question, state, composite);
         }
 
+
+        /**
+         * fill out ui elements from the question retrieved from the database.
+         */
         @Override
         protected void onPostExecute(QuestionWithStateAndAnswers question) {
             super.onPostExecute(question);
@@ -191,8 +234,6 @@ public class QuestionFragment extends Fragment {
                 final int selectedIndex = i;
                 button.setOnClickListener(view -> {
 
-//                    if (fragment.quizFinishDispatcher.isQuizFinished())
-//                        return;
                     fragment.selected = selectedIndex;
 
                     AsyncTask.execute(() -> {

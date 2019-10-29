@@ -8,7 +8,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import dev.dsluo.statecapitals.R;
 
-//splash screen
+/**
+ * Main Activity
+ *
+ * @author David Luo
+ * @author Darren Ing
+ */
 public class MainActivity extends AppCompatActivity {
     private Button splashStart;
     private Button splashResults;
