@@ -45,13 +45,17 @@ public class ResultsActivity extends AppCompatActivity {
 
         resultsListView.setAdapter(adapter);
 
-        new GetResultsTask();
+        new GetResultsTask(this).execute();
 
     }
 
     private static class GetResultsTask extends AsyncTask<Void, Void, ArrayList<String>> {
 
         private WeakReference<ResultsActivity> activityReference;
+
+        GetResultsTask(ResultsActivity context) {
+            this.activityReference = new WeakReference<>(context);
+        }
 
         @Override
         protected ArrayList<String> doInBackground(Void... voids) {
