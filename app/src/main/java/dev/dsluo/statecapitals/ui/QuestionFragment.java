@@ -1,5 +1,6 @@
 package dev.dsluo.statecapitals.ui;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -44,8 +45,18 @@ public class QuestionFragment extends Fragment {
     private TextView questionNumber;
     private TextView questionText;
 
+    private QuizFinishDispatcher quizFinishDispatcher;
+
+    public interface QuizFinishDispatcher {
+        boolean isQuizFinished();
+    }
+
     // Required empty public constructor
     public QuestionFragment() {
+    }
+
+    public RadioGroup getQuestionGroup() {
+        return questionGroup;
     }
 
     public static QuestionFragment newInstance(long quizId, int questionIndex) {
@@ -70,6 +81,20 @@ public class QuestionFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof QuizFinishDispatcher)
+            quizFinishDispatcher = (QuizFinishDispatcher) context;
+        else
+            throw new RuntimeException(context.toString() + " must implement QuizFinishDispatcher.");
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        quizFinishDispatcher = null;
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -82,6 +107,7 @@ public class QuestionFragment extends Fragment {
         questionNumber = view.findViewById(R.id.question_number);
         questionText = view.findViewById(R.id.question_text);
         questionGroup = view.findViewById(R.id.question_group);
+
 
         new GetQuestionTask(this).execute();
 
@@ -160,9 +186,13 @@ public class QuestionFragment extends Fragment {
                 if (fragment.selected == i)
                     button.setChecked(true);
 
+
                 button.setText(choices.get(i));
                 final int selectedIndex = i;
                 button.setOnClickListener(view -> {
+
+//                    if (fragment.quizFinishDispatcher.isQuizFinished())
+//                        return;
                     fragment.selected = selectedIndex;
 
                     AsyncTask.execute(() -> {
@@ -173,8 +203,15 @@ public class QuestionFragment extends Fragment {
                         repo.updateQuestion(q);
                     });
                 });
-            }
 
+                if (fragment.quizFinishDispatcher.isQuizFinished()) {
+                    button.setEnabled(false);
+                    button.setClickable(false);
+                }
+            }
+            if (fragment.quizFinishDispatcher.isQuizFinished()) {
+                fragment.questionGroup.setEnabled(false);
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package dev.dsluo.statecapitals.ui;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.widget.RadioGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +12,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 import dev.dsluo.statecapitals.R;
@@ -19,7 +21,7 @@ import dev.dsluo.statecapitals.database.entities.Question;
 import dev.dsluo.statecapitals.database.entities.Quiz;
 import dev.dsluo.statecapitals.database.entities.dumbwiths.QuizWithQuestions;
 
-public class QuizActivity extends AppCompatActivity implements QuizFinishFragment.OnQuizFinishListener {
+public class QuizActivity extends AppCompatActivity implements QuizFinishFragment.OnQuizFinishListener, QuestionFragment.QuizFinishDispatcher {
 
     private static final String QUIZ_ID = "dev.dsluo.statecapitals.QuizActivity.QUIZ_ID";
     private static final String QUESTION_INDEX = "dev.dsluo.statecapitals.QuizActivity.QUESTION_INDEX";
@@ -30,6 +32,8 @@ public class QuizActivity extends AppCompatActivity implements QuizFinishFragmen
     private boolean finished = false;
 
     private QuizWithQuestions quiz;
+
+    private List<QuestionFragment> fragments = new ArrayList<>();
 
     private ViewPager pager;
     private QuestionPageAdapter adapter;
@@ -56,6 +60,22 @@ public class QuizActivity extends AppCompatActivity implements QuizFinishFragmen
     @Override
     public void onQuizFinished() {
         finished = true;
+        adapter.notifyDataSetChanged();
+
+        for (QuestionFragment fragment : this.fragments) {
+            RadioGroup group = fragment.getQuestionGroup();
+            group.setEnabled(false);
+            group.setClickable(false);
+            for (int i = 0; i < group.getChildCount(); i++) {
+                group.getChildAt(i).setEnabled(false);
+                group.getChildAt(i).setClickable(false);
+            }
+        }
+    }
+
+    @Override
+    public boolean isQuizFinished() {
+        return finished;
     }
 
     /**
@@ -119,13 +139,19 @@ public class QuizActivity extends AppCompatActivity implements QuizFinishFragmen
         @Override
         public Fragment getItem(int position) {
             QuizWithQuestions quiz = activity.quiz;
+            Fragment fragment;
             if (quiz == null)
                 throw new RuntimeException("This shouldn't happen");
-            if (quiz.getQuiz().completed != null || activity.finished)
-                return QuizFinishFragment.newInstance(quiz.getQuiz().id, true);
-            if (position == getCount() - 1)
-                return QuizFinishFragment.newInstance(quiz.getQuiz().id, false);
-            return QuestionFragment.newInstance(quiz.getQuiz().id, position);
+            else if (quiz.getQuiz().completed != null || activity.finished)
+                fragment = QuizFinishFragment.newInstance(quiz.getQuiz().id, true);
+            else if (position == getCount() - 1)
+                fragment = QuizFinishFragment.newInstance(quiz.getQuiz().id, false);
+            else {
+                fragment = QuestionFragment.newInstance(quiz.getQuiz().id, position);
+                activity.fragments.add((QuestionFragment) fragment);
+            }
+
+            return fragment;
         }
 
         @Override
