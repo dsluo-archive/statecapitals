@@ -25,6 +25,7 @@ import dev.dsluo.statecapitals.database.entities.State;
  * this class.
  *
  * @author David Luo
+ * @author Darren Ing
  */
 public class Repository {
 

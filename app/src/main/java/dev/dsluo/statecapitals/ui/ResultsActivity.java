@@ -26,6 +26,11 @@ import dev.dsluo.statecapitals.database.Repository;
 import dev.dsluo.statecapitals.database.entities.Quiz;
 import dev.dsluo.statecapitals.database.entities.dumbwiths.QuizWithQuestions;
 
+/**
+ * Displays and adds functionality to the results page.
+ *
+ * @author Darren Ing
+ */
 public class ResultsActivity extends AppCompatActivity {
 
 
