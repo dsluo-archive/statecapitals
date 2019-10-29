@@ -16,6 +16,11 @@ import dev.dsluo.statecapitals.R;
 import dev.dsluo.statecapitals.database.Repository;
 import dev.dsluo.statecapitals.database.entities.Quiz;
 
+/**
+ * Displays and adds functionality to the results page.
+ *
+ * @author Darren Ing
+ */
 public class ResultsActivity extends AppCompatActivity {
 
 
